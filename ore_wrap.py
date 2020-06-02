@@ -60,6 +60,11 @@ class OREBlkSecretKey(OREBlk):
         self._key = sk
         return
     
+    def __del__(self):
+        err_msg = "Could not free secret key."
+        self.err_check(ore_blk.ore_blk_cleanup(ct.byref(self._key)), err_msg)
+        return
+    
     def get_params(self):
         return self._params
     
@@ -100,6 +105,15 @@ class OREBlkCiphertext(OREBlk):
             self.err_check(ore_blk.ore_blk_encrypt_ui_right(ct.byref(enc), ct.byref(ore_blk_secret_key.get_key()), val), err_msg)
 
         self._encryption = enc
+        return
+    
+    def __del__(self):
+        if self._enc_type == 'L':
+            err_msg = "Could not free left ciphertext."
+            self.err_check(ore_blk.clear_ore_blk_ciphertext_left(ct.byref(self._encryption)), err_msg)
+        else:
+            err_msg = "Could not free right ciphertext."
+            self.err_check(ore_blk.clear_ore_blk_ciphertext_right(ct.byref(self._encryption)), err_msg)
         return
     
     def get_enc_type(self):
